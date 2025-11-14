@@ -10,7 +10,7 @@ class ContractDto
 //        #[Groups(['public'])]
 //        public ?string $objectId,
 
-    private string $code;
+    private ?string $code;
 
 //        #[Groups(['public'])]
 //        public ?\DateTimeImmutable $createDate,
@@ -24,7 +24,7 @@ class ContractDto
 //        #[Groups(['public'])]
 //        public string $statusId,
 
-    private string $name;
+    private ?string $name;
 
     private ?\DateTimeImmutable $statusDate;
 

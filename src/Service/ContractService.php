@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Dto\ContractDto;
 use App\Entity\ContractEntity;
+use App\Exception\IllegalVariableException;
 use App\Mapper\ContractMapper;
 use App\Repository\ContractRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,17 +35,20 @@ class ContractService
 
     public function createContract(ContractDto $dto): ContractDto
     {
+
+        $this->checkDto($dto);
         $contract = ContractMapper::toContractEntity($dto);
 
         //Заполняем вычисляемые поля
         $contract->setId(null);
+        $dto->setStatusDate(new \DateTimeImmutable());
 
         $resultCreate = $this->contractRepository->createContract($contract);
 
         return ContractMapper::toContractDto($resultCreate);
     }
 
-    public function getContract(string $id): ContractDto
+    public function getContract(string $id): ?ContractDto
     {
         $contract = $this->contractRepository->getContract($id);
 
@@ -53,6 +57,7 @@ class ContractService
 
     public function changeContract(ContractDto $dto): ContractDto
     {
+        $this->checkDto($dto);
         $contract = ContractMapper::toContractEntity($dto);
 
         $resultCreate = $this->contractRepository->changeContract($contract);
@@ -72,6 +77,29 @@ class ContractService
             return new JsonResponse([
                 'message' => "Не найден договор с данным id"
             ], JsonResponse::HTTP_NOT_FOUND);
+        }
+    }
+
+    private function checkDto(ContractDto $dto): void{
+
+        if($dto->getCode() == null || $dto->getCode() == ""){
+            throw new IllegalVariableException('Код не может иметь данное значение %s', $dto->getCode());
+        }
+
+        if($dto->getName() == null || $dto->getName() == ""){
+            throw new IllegalVariableException('Имя не может иметь данное значение %s', $dto->getName());
+        }
+
+        if ($dto->getPrice() == null || $dto->getPrice() < 0 || !ctype_digit($dto->getPrice())) {
+            throw new IllegalVariableException('Цена не может иметь данное значение %s', $dto->getPrice());
+        }
+
+        if ($dto->getQuantity() == null || $dto->getQuantity() < 0) {
+            throw new IllegalVariableException('Количество не может иметь данное значение %s', $dto->getQuantity());
+        }
+
+        if ($dto->getStatusDate() < new \DateTimeImmutable()) {
+            throw new IllegalVariableException('Дата должна быть больше %s', (new \DateTimeImmutable())->format('Y-m-d H:i:s'));
         }
     }
 }

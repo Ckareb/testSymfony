@@ -12,7 +12,12 @@ use Doctrine\Common\Collections\Collection;
 
 class ContractMapper
 {
-    public static function toContractDto(ContractEntity $contractEntity): ContractDto{
+    public static function toContractDto(?ContractEntity $contractEntity): ?ContractDto{
+
+        if ($contractEntity === null) {
+            return null; // возвращаем null если сущность не найдена
+        }
+
         $dto = new ContractDto();
         $dto->setId($contractEntity->getId());
         $dto->setCode($contractEntity->getCode());
@@ -52,7 +57,7 @@ class ContractMapper
         return $entity;
     }
 
-    public static function toContractDtoWithSpec(ContractEntity $contractEntity,Collection  $contractSpecEntities): ContractDto{
+    public static function toContractDtoWithSpec(ContractEntity $contractEntity, Collection  $contractSpecEntities): ContractDto{
         $dto = new ContractDtoWithSpec();
         $dto->setId($contractEntity->getId());
         $dto->setCode($contractEntity->getCode());

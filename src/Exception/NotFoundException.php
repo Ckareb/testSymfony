@@ -2,19 +2,17 @@
 
 namespace App\Exception;
 
-use DateTimeImmutable;
-
-class IllegalVariableException extends DomainException
+class NotFoundException extends DomainException
 {
-    protected string $domainCode = 'BAD_REQUEST';
+    protected string $domainCode = 'NOT_FOUND';
 
     public function __construct(?string $message = null, int|string|null $variable = null, \Throwable $previous = null)
     {
-        $massage = $message ?? 'Данное поле не может иметь данное значение %s';
+        $massage = $message ?? 'Не надено данное значение %s';
         $variable = $variable ?? 'NULL';
 
         parent::__construct(
-            400,
+            404,
             sprintf($massage, $variable),
             $previous);
     }

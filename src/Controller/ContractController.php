@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Dto\ContractDto;
 use App\Service\ContractService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -70,5 +71,28 @@ class ContractController extends AbstractController
     public function deleteContract(string $id): JsonResponse
     {
         return $this->contractService->deleteContract($id);
+    }
+
+    #[Route('/{id}/file', methods: ['POST'])]
+    public function uploadFile(int $id, Request $request): JsonResponse
+    {
+        $file = $request->files->get('file');
+
+        return $this->contractService->uploadFileFromDb($id, $file);
+    }
+
+    #[Route('/{id}/file', methods: ['GET'])]
+    public function downloadFile(int $id): Response
+    {
+        $file = $this->contractService->getFileFromDb($id);
+
+        return new Response(
+            $file['data'],
+            200,
+            [
+                'Content-Type' => $file['mime'],
+                'Content-Disposition' => 'attachment; filename="'.$file['name'].'"',
+            ]
+        );
     }
 }

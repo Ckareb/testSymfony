@@ -6,15 +6,18 @@ namespace App\Repository;
 use App\Entity\ContractEntity;
 
 
-use Doctrine\ORM\QueryBuilder;
+use Doctrine\DBAL\Connection;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 
 class ContractRepository extends ServiceEntityRepository
 {
     private $em;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ContractEntity::class);
@@ -84,4 +87,48 @@ class ContractRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    public function uploadFileFromDb(string $id, UploadedFile $file): int
+    {
+        $binary = file_get_contents($file->getPathname());
+
+        return $this->em->createQueryBuilder()
+            ->update(ContractEntity::class, 'c')
+            ->set('c.fileData', ':data')
+            ->set('c.fileName', ':name')
+            ->set('c.fileType', ':mime')
+            ->where('c.id = :id')
+            ->setParameter('data', $binary, \PDO::PARAM_LOB)
+            ->setParameter('name', $file->getClientOriginalName())
+            ->setParameter('mime', $file->getMimeType())
+            ->setParameter('id', $id)
+            ->getQuery()->execute();
+    }
+
+    public function getFileFromDb(int $id): ?array
+    {
+        $qb = $this->em->createQueryBuilder();
+
+        $file = $qb->select('c.fileData', 'c.fileName', 'c.fileType')
+            ->from(ContractEntity::class, 'c')
+            ->where('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult(Query::HYDRATE_ARRAY);
+
+        if (!$file || !$file['fileData']) {
+            return null;
+        }
+
+        $binary = is_resource($file['fileData'])
+            ? stream_get_contents($file['fileData'])
+            : $file['fileData'];
+
+        return [
+            'data' => $binary,
+            'name' => $file['fileName'],
+            'mime' => $file['fileType'],
+        ];
+    }
+
 }

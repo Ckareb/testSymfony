@@ -5,8 +5,10 @@ namespace App\Service;
 use App\Dto\ContractDto;
 use App\Entity\ContractEntity;
 use App\Exception\IllegalVariableException;
+use App\Exception\NotFoundException;
 use App\Mapper\ContractMapper;
 use App\Repository\ContractRepository;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ContractService
@@ -79,6 +81,34 @@ class ContractService
             ], JsonResponse::HTTP_NOT_FOUND);
         }
     }
+
+    public function uploadFileFromDb(string $id, UploadedFile $file): JsonResponse
+    {
+        $result = $this->contractRepository->uploadFileFromDb($id, $file);
+
+        if ($result != null) {
+            return new JsonResponse([
+                'message' => "Файл успешно сохранен"
+            ], JsonResponse::HTTP_OK);
+        } else {
+            return new JsonResponse([
+                'message' => "Файл не предоставлен"
+            ], JsonResponse::HTTP_NOT_FOUND);
+        }
+    }
+
+    public function getFileFromDb(string $id): array
+    {
+        $result = $this->contractRepository->getFileFromDb($id);
+
+        if ($result == null) {
+            throw new IllegalVariableException('Файл не найден',null);
+        }
+
+        return $result;
+    }
+
+
 
     private function checkDto(ContractDto $dto): void{
 

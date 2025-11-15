@@ -49,6 +49,15 @@ class ContractEntity
     #[ORM\Column(type: 'integer')]
     private ?int $quantity;
 
+    #[ORM\Column(type: 'binary', nullable: true)]
+    private $fileData;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $fileName = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $fileType = null;
+
     #[ORM\OneToMany(mappedBy: 'contract', targetEntity: ContractSpecEntity::class)]
     private Collection $contractSpecs;
 
@@ -136,7 +145,37 @@ class ContractEntity
     public function getQuantity(): ?int { return $this->quantity; }
     public function setQuantity(?int $quantity): void { $this->quantity = $quantity; }
 
-    public function getContractSpecs(): ?Collection { return $this->contractSpecs; }
+    public function getFileData(): ?string
+    {
+        return $this->fileData ? stream_get_contents($this->fileData) : null;
+    }
+
+    public function setFileData(?string $data): void
+    {
+        $this->fileData = $data;
+    }
+
+    public function getFileName(): ?string
+    {
+        return $this->fileName;
+    }
+
+    public function setFileName(?string $fileName): void
+    {
+        $this->fileName = $fileName;
+    }
+
+    public function getFileMime(): ?string
+    {
+        return $this->fileType;
+    }
+
+    public function setFileMime(?string $fileType): void
+    {
+        $this->fileType = $fileType;
+    }
+
+        public function getContractSpecs(): ?Collection { return $this->contractSpecs; }
     public function setContractSpecs(?Collection $contractSpecs): void { $this->contractSpecs = $contractSpecs; }
 
 //    public function getSupContrId(): string { return $this->supContrId; }

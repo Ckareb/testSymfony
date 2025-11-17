@@ -6,9 +6,12 @@ namespace App\Repository;
 use App\Dto\ContractSpecDto;
 use App\Entity\ContractEntity;
 
+use App\Entity\ContractSpecEntity;
 use Doctrine\DBAL\Connection;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 
 class ContractSpecRepository extends ServiceEntityRepository
@@ -124,5 +127,34 @@ class ContractSpecRepository extends ServiceEntityRepository
         $sql = "DELETE FROM edu_php.t_contract_spec WHERE id = :id";
 
         return $this->conn->executeStatement($sql, ['id' => $id]);
+    }
+
+    public function uploadFilePathFromDb(string $id, string $filePath, string $fileName, string $fileType): int
+    {
+
+        return $this->em->createQueryBuilder()
+            ->update(ContractSpecEntity::class, 'c')
+            ->set('c.filePath', ':path')
+            ->set('c.fileName', ':name')
+            ->set('c.fileType', ':mime')
+            ->where('c.id = :id')
+            ->setParameter('path', $filePath)
+            ->setParameter('name', $fileName)
+            ->setParameter('mime', $fileType)
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->execute();
+    }
+
+    public function getFilePathFromDb(int $id): ?array
+    {
+        $qb = $this->em->createQueryBuilder();
+
+        return $qb->select('c.filePath', 'c.fileName', 'c.fileType')
+            ->from(ContractSpecEntity::class, 'c')
+            ->where('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult(Query::HYDRATE_ARRAY);
     }
 }

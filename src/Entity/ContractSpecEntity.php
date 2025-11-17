@@ -29,6 +29,15 @@ class ContractSpecEntity
     #[ORM\Column(type: 'integer')]
     private ?int $quantity;
 
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $filePath;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $fileName = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $fileType = null;
+
     #[ORM\ManyToOne(targetEntity: ContractEntity::class, inversedBy: 't_contract_spec')]
     #[ORM\JoinColumn(name: 'contract_id', referencedColumnName: 'id')]
     private ?ContractEntity $contract = null;
@@ -53,4 +62,34 @@ class ContractSpecEntity
 
     public function getContract(): ?ContractEntity { return $this->contract; }
     //public function setContract(?ContractEntity $contract): void { $this->contract = $contract; }
+
+    public function getFilePath(): ?string
+    {
+        return $this->filePath;
+    }
+
+    public function setFilePath(?string $filePath): void
+    {
+        $this->filePath = $filePath;
+    }
+
+    public function getFileName(): ?string
+    {
+        return $this->fileName;
+    }
+
+    public function setFileName(?string $fileName): void
+    {
+        $this->fileName = $fileName;
+    }
+
+    public function getFileMime(): ?string
+    {
+        return $this->fileType;
+    }
+
+    public function setFileMime(?string $fileType): void
+    {
+        $this->fileType = $fileType;
+    }
 }

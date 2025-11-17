@@ -6,6 +6,7 @@ use App\Dto\ContractSpecDto;
 use App\Service\ContractSpecService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -63,5 +64,28 @@ class ContractSpecController extends AbstractController
     public function deleteContractSpec(string $id): JsonResponse
     {
         return $this->contractSpecService->deleteContractSpec($id);
+    }
+
+    #[Route('/{id}/file', name: 'upload_file_spec', methods: ['POST'])]
+    public function uploadFile(string $id, Request $request): JsonResponse
+    {
+        $file = $request->files->get('file');
+
+        return $this->contractSpecService->uploadFilePathFromDb($id, $file);
+    }
+
+    #[Route('/{id}/file',name: 'download_file_spec', methods: ['GET'])]
+    public function downloadFile(string $id): Response
+    {
+        $file = $this->contractSpecService->downloadFile($id);
+
+        return new Response(
+            $file['data'],
+            200,
+            [
+                'Content-Type' => $file['mime'],
+                'Content-Disposition' => 'attachment; filename="'.$file['name'].'"',
+            ]
+        );
     }
 }

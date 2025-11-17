@@ -7,6 +7,7 @@ use App\Exception\IllegalVariableException;
 use App\Exception\NotFoundException;
 use App\Mapper\ContractMapper;
 use App\Repository\ContractSpecRepository;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ContractSpecService
@@ -63,6 +64,7 @@ class ContractSpecService
 
     public function deleteContractSpec(string $id): JsonResponse
     {
+        $this->deleteFileByPath($id);
         $deletedRow = $this->contractSpecRepository->deleteContractSpec($id);
 
         if ($deletedRow > 0) {
@@ -74,6 +76,69 @@ class ContractSpecService
                 'message' => "Не найден договор с данным id"
             ], JsonResponse::HTTP_NOT_FOUND);
         }
+    }
+
+    public function uploadFilePathFromDb(string $id, mixed $file): JsonResponse
+    {
+        if ($this->getContractSpec($id) == null) {
+            throw new NotFoundException('Данной спецификации не существует %s', null);
+        }
+
+        $uploadDir = __DIR__ . '/../../public/uploads/contractSpecs';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+
+        $uniqueName = uniqid() . '_' . $file->getClientOriginalName();
+
+        $filePath = '/uploads/contractSpecs/' . $uniqueName;
+
+        $result = $this->contractSpecRepository->uploadFilePathFromDb(
+            $id,
+            $filePath,
+            $file->getClientOriginalName(),
+            $file->getMimeType()
+        );
+
+        $file->move($uploadDir, $uniqueName);
+
+        if ($result > 0) {
+            return new JsonResponse([
+                'message' => "Документ " . $file->getClientOriginalName() . " успешно сохранен"
+            ], JsonResponse::HTTP_OK);
+        } else {
+            return new JsonResponse([
+                'message' => "При сохранении документа произошла ошибка"
+            ], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function downloadFile(string $id)
+    {
+        $file = $this->contractSpecRepository->getFilePathFromDb($id);
+
+        $path = __DIR__ . '/../../public' . $file['filePath'];
+
+        if (!$file || !file_exists($path)) {
+            throw new NotFoundException('Файл для данной спецификации не найден %s', null);
+        }
+
+        return [
+            'data' => file_get_contents($path),
+            'name' => $file['fileName'],
+            'mime' => $file['fileType']
+        ];
+    }
+
+    public function deleteFileByPath(string $id): bool
+    {
+        $filePath = $this->contractSpecRepository->getFilePathFromDb($id);
+
+        $absolutePath = __DIR__ . '/../../public' . $filePath['filePath'];
+
+        if (file_exists($absolutePath)) {
+            return unlink($absolutePath);
+        }
+
+        return false;
     }
 
     private function checkDto(ContractSpecDto $dto): void

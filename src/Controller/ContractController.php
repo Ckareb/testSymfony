@@ -73,16 +73,16 @@ class ContractController extends AbstractController
         return $this->contractService->deleteContract($id);
     }
 
-    #[Route('/{id}/file', methods: ['POST'])]
-    public function uploadFile(int $id, Request $request): JsonResponse
+    #[Route('/{id}/file', name: 'upload_file_contr', methods: ['POST'])]
+    public function uploadFile(string $id, Request $request): JsonResponse
     {
         $file = $request->files->get('file');
 
         return $this->contractService->uploadFileFromDb($id, $file);
     }
 
-    #[Route('/{id}/file', methods: ['GET'])]
-    public function downloadFile(int $id): Response
+    #[Route('/{id}/file', name: 'download_file_contr', methods: ['GET'])]
+    public function downloadFile(string $id): Response
     {
         $file = $this->contractService->getFileFromDb($id);
 
